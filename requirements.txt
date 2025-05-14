@@ -7,3 +7,5 @@ numpy
 matplotlib
 pyarrow
 fastparquet
+optuna
+shap
