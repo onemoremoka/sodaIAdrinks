@@ -1,0 +1,11 @@
+notebook
+ipykernel
+pandas
+scikit-learn
+seaborn
+numpy
+matplotlib
+pyarrow
+fastparquet
+optuna
+shap
