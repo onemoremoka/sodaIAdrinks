@@ -172,3 +172,10 @@ cython_debug/
 
 # PyPI configuration file
 .pypirc
+
+# Local virtual environment
+airflow/runs/
+airflow/logs/
+airflow/airflow.cfg
+airflow/airflow.db
+airflow/simple_auth_manager_passwords.json.generated
