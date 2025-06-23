@@ -1,3 +1,4 @@
+import os
 from datetime import datetime, timedelta
 
 from airflow import DAG
@@ -12,8 +13,19 @@ dag_args = {
 }
 
 
-def creates_folders():
-    print("Creating necessary folders for preprocessing...")
+def creates_folders(ds):
+    BASE_PATH = os.path.join(os.getenv("AIRFLOW_HOME"), "runs", ds)
+    print(f"Creating folders in {BASE_PATH}...")
+    subfolders = [
+        "raw_data",
+        "preprocessed_data",
+        "splits_data",
+        "models",
+    ]
+
+    for folder in subfolders:
+        os.makedirs(os.path.join(BASE_PATH, folder), exist_ok=True)
+        print(f"Folder {folder} created at {os.path.join(BASE_PATH, folder)}")
 
 
 def split_data():
@@ -47,7 +59,7 @@ with DAG(
     task_create_folders = PythonOperator(
         task_id="create_folders",
         python_callable=creates_folders,
-        op_kwargs={"folder_name": "preprocessing"},
+        op_kwargs={"ds": "{{ ds }}"},
     )
 
     task_split_data = PythonOperator(
