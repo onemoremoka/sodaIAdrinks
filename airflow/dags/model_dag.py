@@ -1,5 +1,6 @@
 import os
 from datetime import datetime, timedelta
+import pandas as pd
 
 from airflow import DAG
 from airflow.operators.empty import EmptyOperator
@@ -13,9 +14,9 @@ dag_args = {
 }
 
 
-def creates_folders(ds):
+def creates_folders(ds, **kwargs):
     BASE_PATH = os.path.join(os.getenv("AIRFLOW_HOME"), "runs", ds)
-    print(f"Creating folders in {BASE_PATH}...")
+
     subfolders = [
         "raw_data",
         "preprocessed_data",
@@ -23,13 +24,29 @@ def creates_folders(ds):
         "models",
     ]
 
+    paths = dict()
     for folder in subfolders:
-        os.makedirs(os.path.join(BASE_PATH, folder), exist_ok=True)
-        print(f"Folder {folder} created at {os.path.join(BASE_PATH, folder)}")
+        path = os.path.join(BASE_PATH, folder)
+        os.makedirs(path, exist_ok=True)
+        paths[folder] = path
+        print(f"Folder {folder} created at {path}")
+
+    ti = kwargs["ti"]
+    ti.xcom_push(key="paths", value=paths)
 
 
-def split_data():
+def split_data(ds, **kwargs):
+    ti = kwargs["ti"]
+    paths = ti.xcom_pull(key="paths", task_ids="create_folders")
+
+    raw_data_path = os.path.join(paths["raw_data"], "data.csv")
+
+    df = pd.read_csv(raw_data_path)
+
+    # aqui eliminamos la columna Y. luego separar los conjuntos
+
     print("Splitting data into training and validation sets...")
+    return
 
 
 def preprocess_data():
@@ -65,7 +82,7 @@ with DAG(
     task_split_data = PythonOperator(
         task_id="split_data",
         python_callable=split_data,
-        op_kwargs={"data_path": "data/raw_data.csv"},
+        op_kwargs={"ds": "{{ ds }}"},
     )
 
     task_preprocess_data = PythonOperator(
