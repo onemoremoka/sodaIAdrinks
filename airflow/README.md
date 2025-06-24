@@ -9,3 +9,5 @@ luego de construir la imagen docker. al ingresar a airflow el usuario y contrase
 
 ![alt text](image.png)
 
+docker run -it --rm --entrypoint /bin/bash airflow:test
+
