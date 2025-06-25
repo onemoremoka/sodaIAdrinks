@@ -1,3 +1,6 @@
-gradio
+# gradio
 pandas
 numpy
+pyarrow
+fastparquet
+scikit-learn

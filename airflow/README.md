@@ -25,8 +25,11 @@ docker run -it --rm \
 docker run -it --rm \
   -p 8080:8080 \
   -e AIRFLOW__CORE__LOAD_EXAMPLES=False \
+  -e AIRFLOW__API_AUTH__JWT_SECRET="simple_auth_manager_passwords.json.generated" \
   airflow:test standalone
 
+
+docker run -it --rm -p 8080:8080 airflow:test standalone
 
 COPY requirements.txt constraints.txt $AIRFLOW_HOME/
 
