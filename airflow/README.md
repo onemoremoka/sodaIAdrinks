@@ -29,6 +29,8 @@ docker run -it --rm \
   airflow:test standalone
 
 
+docker run -it --rm -p 8080:8080 airflow:test standalone
+
 COPY requirements.txt constraints.txt $AIRFLOW_HOME/
 
 RUN pip install --no-cache-dir -r requirements.txt -c constraints.txt
