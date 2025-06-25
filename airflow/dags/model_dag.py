@@ -6,10 +6,10 @@ from airflow.operators.empty import EmptyOperator
 from airflow.operators.python import PythonOperator
 
 from src.utils import creates_folders, ingestion_data
+from src.preprocessing import preprocessing_data
+
 from src.loader import split_data
-from src.preprocessing import preprocess_data
 from src.train import train_model
-from src.predict import gradio_interface
 
 print("✅ DAG model_dag.py cargado correctamente")
 
@@ -43,11 +43,11 @@ with DAG(
         op_kwargs={"ds": "{{ ds }}"},
     )
 
-    # task_split_data = PythonOperator(
-    #     task_id="split_data",
-    #     python_callable=split_data,
-    #     op_kwargs={"ds": "{{ ds }}"},
-    # )
+    task_preprocessing_data = PythonOperator(
+        task_id="preprocessing_data",
+        python_callable=preprocessing_data,
+        op_kwargs={"ds": "{{ ds }}"},
+    )
 
     # task_preprocess_data = PythonOperator(
     #     task_id="preprocess_data",
@@ -67,7 +67,7 @@ with DAG(
     # )
 
     (
-        start >> task_create_folders >> task_ingestion_data
+        start >> task_create_folders >> task_ingestion_data >> task_preprocessing_data
         # >> task_split_data
         # >> task_preprocess_data
         # >> task_train_model
