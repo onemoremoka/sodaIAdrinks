@@ -6,10 +6,10 @@ from airflow.operators.empty import EmptyOperator
 from airflow.operators.python import PythonOperator
 
 from src.utils import creates_folders, ingestion_data
-from src.preprocessing import preprocessing_data
-
+from src.preprocessing import preprocessing_data, augmentation_data
 from src.loader import split_data
 from src.train import train_model
+
 
 print("✅ DAG model_dag.py cargado correctamente")
 
@@ -49,17 +49,23 @@ with DAG(
         op_kwargs={"ds": "{{ ds }}"},
     )
 
-    # task_preprocess_data = PythonOperator(
-    #     task_id="preprocess_data",
-    #     python_callable=preprocess_data,
-    #     op_kwargs={"data_path": "data/split_data.csv"},
-    # )
+    task_split_data = PythonOperator(
+        task_id="split_data",
+        python_callable=split_data,
+        op_kwargs={"ds": "{{ ds }}"},
+    )
 
-    # task_train_model = PythonOperator(
-    #     task_id="train_model",
-    #     python_callable=train_model,
-    #     op_kwargs={"model_path": "models/trained_model.pkl"},
-    # )
+    task_augment_data = PythonOperator(
+        task_id="augment_data",
+        python_callable=augmentation_data,
+        op_kwargs={"ds": "{{ ds }}"},
+    )
+
+    task_train_model = PythonOperator(
+        task_id="train_model",
+        python_callable=train_model,
+        op_kwargs={"model_path": "models/trained_model.pkl"},
+    )
 
     # task_gradio_interface = PythonOperator(
     #     task_id="gradio_interface",
@@ -67,9 +73,13 @@ with DAG(
     # )
 
     (
-        start >> task_create_folders >> task_ingestion_data >> task_preprocessing_data
-        # >> task_split_data
-        # >> task_preprocess_data
+        start
+        >> task_create_folders
+        >> task_ingestion_data
+        >> task_preprocessing_data
+        >> task_split_data
+        >> task_augment_data
+        >> task_train_model
         # >> task_train_model
         # >> task_gradio_interface
     )
