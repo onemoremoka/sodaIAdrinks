@@ -24,7 +24,8 @@ def creates_folders(ds: str, **kwargs) -> None:
         paths[folder] = path
         print(f"Folder {folder} created at {path}")
 
-    kwargs["ti"].xcom_push(key="paths", value=paths)
+    if kwargs.get("dev", False):
+        kwargs["ti"].xcom_push(key="paths", value=paths)
 
 
 # emula la funcion de download de los datasets y los guarda en la carpeta raw_data
@@ -32,9 +33,12 @@ def ingestion_data(ds: str, **kwargs) -> None:
     """
     Copia y mergea los .parquet de data/ en raw_data
     """
+    if not kwargs["dev"]:
+        ti = kwargs["ti"]
+        paths = ti.xcom_pull(key="paths", task_ids="create_folders")
 
-    ti = kwargs["ti"]
-    paths = ti.xcom_pull(key="paths", task_ids="create_folders")
+    paths = kwargs.get("data_path", {})
+    print(paths)
 
     parquet_files = [f for f in os.listdir("data") if f.endswith(".parquet")]
 
@@ -45,7 +49,8 @@ def ingestion_data(ds: str, **kwargs) -> None:
     ]
 
     # pasarr la ruta de los datasets a xcom . no usar read_parquet
-    ti.xcom_push(
-        key="datasets",
-        value={f: os.path.join(paths["raw_data"], f) for f in parquet_files},
-    )
+    if not kwargs["dev"]:
+        ti.xcom_push(
+            key="datasets",
+            value={f: os.path.join(paths["raw_data"], f) for f in parquet_files},
+        )
