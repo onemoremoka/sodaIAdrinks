@@ -1,6 +1,7 @@
 from src.preprocessing import preprocessing_data
 from src.utils import creates_folders, ingestion_data
 from src.loader import split_data
+from src.train import train_model
 import pandas as pd
 
 
@@ -51,4 +52,10 @@ split_data_ = split_data(
     data_completed_path=df_completed_path,
     paths=data_path,
     dev=True,  # Set to True for development mode
+)
+
+train_model_ = train_model(
+    ds=ds,
+    paths=data_path,
+    dev=True,
 )

@@ -6,11 +6,12 @@ from airflow.operators.empty import EmptyOperator
 from airflow.operators.python import PythonOperator
 
 from src.utils import creates_folders, ingestion_data
-from src.preprocessing import preprocessing_data, augmentation_data
+from src.preprocessing import preprocessing_data
 from src.loader import split_data
 from src.train import train_model
+from airflow.models import Variable
 
-
+Variable.set("dev", "False")
 print("✅ DAG model_dag.py cargado correctamente")
 
 dag_args = {
@@ -40,25 +41,19 @@ with DAG(
     task_ingestion_data = PythonOperator(
         task_id="ingestion_data",
         python_callable=ingestion_data,
-        op_kwargs={"ds": "{{ ds }}"},
+        op_kwargs={"ds": "{{ ds }}", "dev": "{{ var.value.dev }}"},
     )
 
     task_preprocessing_data = PythonOperator(
         task_id="preprocessing_data",
         python_callable=preprocessing_data,
-        op_kwargs={"ds": "{{ ds }}"},
+        op_kwargs={"ds": "{{ ds }}", "dev": "{{ var.value.dev }}"},
     )
 
     task_split_data = PythonOperator(
         task_id="split_data",
         python_callable=split_data,
-        op_kwargs={"ds": "{{ ds }}"},
-    )
-
-    task_augment_data = PythonOperator(
-        task_id="augment_data",
-        python_callable=augmentation_data,
-        op_kwargs={"ds": "{{ ds }}"},
+        op_kwargs={"ds": "{{ ds }}", "dev": "{{ var.value.dev }}"},
     )
 
     task_train_model = PythonOperator(
@@ -67,19 +62,11 @@ with DAG(
         op_kwargs={"model_path": "models/trained_model.pkl"},
     )
 
-    # task_gradio_interface = PythonOperator(
-    #     task_id="gradio_interface",
-    #     python_callable=gradio_interface,
-    # )
-
     (
         start
         >> task_create_folders
         >> task_ingestion_data
         >> task_preprocessing_data
         >> task_split_data
-        >> task_augment_data
         >> task_train_model
-        # >> task_train_model
-        # >> task_gradio_interface
     )

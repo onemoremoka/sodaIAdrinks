@@ -1,0 +1,10 @@
+- No se hizo uso de herramientas de tracking como MLFlow, lo cual podría haber facilitado el seguimiento de experimentos y resultados. Dado la baja cartga de datos y poca complejidad del modelo, no se consideró necesario, pero en un escenario real sería fundamental para el seguimiento de experimentos y resultados. Airflow fue una herramienta clave para la orquestación del flujo de trabajo, permitiendo una gestión eficiente de las tareas.
+
+- La interfaz se diseño bastante basica por lo que no hubo dificultades de implementacion. Respecto a FastAPI si fue un desafio poder cargar el modelo realizado en el contendor de Airflow y poder hacer las predicciones.
+Además el endpoint de prediccion se tuvo dificultades para operar directamente sobre un archivo CSV, por lo que se procesa cada registro individualmente. Es claro que en un entorno real se debería poder cargar un archivo CSV completo y procesarlo de una sola vez, pero por simplicidad se optó por este enfoque.
+
+- La introducción de Airflow en el pipeline fue clave para lograr robustez y escalabilidad. Su capacidad para orquestar tareas, monitorear ejecuciones y facilitar la reprogramación automática ante fallos nos ayudó a construir un flujo mucho más confiable y mantenible. Airflow también nos permite visualizar de forma clara la estructura del pipeline y sus dependencias, lo cual facilita el mantenimiento y la detección temprana de posibles cuellos de botella.
+
+-  se debe incluir un modulo para realizar el reentrenamiento del modelo de forma automatica cuando se haga una consulta. Actualmente se reentrena el modelo una vez al día, pero se podría mejorar para que se reentrene cada vez que se haga una consulta, dado el bajo costo computacional de este modelo. Sería buena implementar MLflow para trasabilidad.
+
+PD: Se implementan las funciones para realizar el drift detection "drift_detection.py" y el reentrenamiento automatico en model_training.py ambos en la carpeta airflow. No se agregar al pipeline de datos por tiempo. Se espera agregar para la ultima etapa.

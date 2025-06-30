@@ -142,15 +142,12 @@ def df_productos_clean(df: pd.DataFrame, path_output: str) -> pd.DataFrame:
 
 
 def preprocessing_data(ds: str, **kwargs) -> None:
-    if not kwargs["dev"]:
-        ti = kwargs["ti"]
-        dataset_paths = ti.xcom_pull(key="datasets", task_ids="ingestion_data")
-        preprocessed_path = ti.xcom_pull(key="paths", task_ids="create_folders")[
-            "preprocessed_data"
-        ]
+    ti = kwargs["ti"]
+    dataset_paths = ti.xcom_pull(key="datasets", task_ids="ingestion_data")
+    preprocessed_path = ti.xcom_pull(key="paths", task_ids="create_folders")[
+        "preprocessed_data"
+    ]
 
-    dataset_paths = kwargs.get("data_path")
-    preprocessed_path = kwargs.get("paths")["preprocessed_data"]
     df_clean = {}
 
     for file_name, file_path in dataset_paths.items():
@@ -195,8 +192,7 @@ def preprocessing_data(ds: str, **kwargs) -> None:
     )
 
     # xcom path de los dataframes preprocesados
-    if not kwargs["dev"]:
-        ti.xcom_push(
-            key="df_completed_path",
-            value=os.path.join("data", "df_completed.parquet"),
-        )
+    ti.xcom_push(
+        key="df_completed_path",
+        value=os.path.join(preprocessed_path, "df_completed.parquet"),
+    )

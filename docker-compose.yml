@@ -1,0 +1,45 @@
+version: "3.9"
+
+services:
+  airflow:
+    build:
+      context: .
+      dockerfile: airflow/Dockerfile
+    container_name: airflow
+    command: standalone         # <--- ¡esto es lo que te faltaba!
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./airflow/runs:/home/airflow/airflow/runs
+      - ./airflow/dags:/home/airflow/airflow/dags
+      - ./src:/home/airflow/airflow/src
+      - ./data:/home/airflow/airflow/data
+  backend:
+    build:
+      context: ./app/backend/apilab
+      dockerfile: Dockerfile
+    container_name: backend_apilab
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./airflow:/app/airflow
+      - ./src:/app/src
+    environment:
+      - PYTHONPATH=/app/src
+
+    restart: always
+    depends_on:
+      - airflow
+
+  frontend:
+    build:
+      context: ./app/frontend
+      dockerfile: Dockerfile
+    container_name: frontend_gradio
+    ports:
+      - "7860:7860"
+    volumes:
+      - ./app/frontend:/app
+    depends_on:
+      - backend
+    restart: always

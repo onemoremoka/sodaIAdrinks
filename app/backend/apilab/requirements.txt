@@ -1,0 +1,15 @@
+fastapi
+uvicorn[standard]
+python-dotenv
+pydantic-settings
+asgi-correlation-id
+
+#ML
+cloudpickle
+gradio
+pandas
+numpy
+pyarrow
+fastparquet
+scikit-learn==1.5.2
+dill

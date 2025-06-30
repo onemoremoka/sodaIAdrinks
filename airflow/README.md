@@ -1,36 +1,58 @@
-docker run -it --rm --entrypoint /bin/bash airflow:test
+# Airflow DAG - MODEL_DAG
 
+## Descripción
 
-# para rrealiza pruebas unicmaent econ airflow. sin integracion
-docker run -it --rm -p 8080:8080 -v "$PWD":/home/airflow airflow:test standalone
+El DAG principal de este proyecto, llamado **MODEL_DAG**, coordina todo el flujo de procesamiento y entrenamiento del modelo de predicción de compras semanales.
 
---- update ----
-luego de construir la imagen docker. al ingresar a airflow el usuario y contraseña se muestran en consola
+## Tareas del Pipeline
 
-![alt text](image.png)
+### 🚀 `start`
+- **Tipo**: EmptyOperator
+- **Propósito**: Marca el inicio del flujo de trabajo
 
-docker run -it --rm --entrypoint /bin/bash airflow:test
+### 📁 `create_folders`
+- **Función**: Crea la estructura de carpetas necesarias
+- **Organización**: Guarda datos por fecha de ejecución
+- **Estructura**:
+  - `/runs/FECHA/raw_data/` - Datos sin procesar
+  - `/runs/FECHA/preprocessed_data/` - Datos preprocesados
+  - `/runs/FECHA/splits_data/` - Conjuntos train/val/test
+  - `/runs/FECHA/models/` - Modelos entrenados
 
----- update ----------------------
+### 📥 `ingestion_data`
+- **Función**: Carga los datasets originales
+- **Datasets**: 
+  - `clientes.parquet`
+  - `productos.parquet` 
+  - `transacciones.parquet`
+- **Salida**: Rutas almacenadas en XCom para uso posterior
 
-docker run -it --rm -p 8080:8080 -v "$PWD":/home/airflow airflow:test standalone^
+### 🔧 `preprocessing_data`
+- **Función**: Aplica limpieza y transformación de datos
+- **Procesos**:
+  - ✅ Limpia y balancea transacciones (`df_transacciones_clean`)
+  - ✅ Elimina duplicados en clientes (`df_clientes_clean`)
+  - ✅ Deduplica y mapea productos (`df_productos_clean`)
+  - ✅ Genera dataset final fusionado (`df_completed.parquet`)
+- **Ubicación**: `/runs/FECHA/preprocessed_data/`
 
+### 📊 `split_data`
+- **Función**: División del dataset en conjuntos de entrenamiento
+- **Salida**: Conjuntos train/validation/test listos para modelado
+- **Formato**: Archivos parquet separados
 
-docker run -it --rm \
-  -p 8080:8080 \
-  -e AIRFLOW__CORE__LOAD_EXAMPLES=False \
-  -v "$PWD":/home/airflow/airflow \
-  airflow:test standalone
+### 🤖 `train_model`
+- **Función**: Entrenamiento del pipeline de Machine Learning
+- **Características**:
+  - 🔹 Enriquecimiento de features (agregados por semana, cliente, producto)
+  - 🔹 Preprocesamiento numérico y categórico
+  - 🔹 Entrenamiento con RandomForest en Pipeline scikit-learn
+- **Salida**: Modelo serializado en `/runs/FECHA/models/trained_model.pkl`
 
-docker run -it --rm \
-  -p 8080:8080 \
-  -e AIRFLOW__CORE__LOAD_EXAMPLES=False \
-  -e AIRFLOW__API_AUTH__JWT_SECRET="simple_auth_manager_passwords.json.generated" \
-  airflow:test standalone
+## Diagrama del Flujo
 
+![Flujo del DAG](airflow.png)
 
-docker run -it --rm -p 8080:8080 airflow:test standalone
+El diagrama de flujo ilustra que el pipeline de entrenamiento es lineal. El DAG está configurado para cada 24 horas ejecutar el pipeline completo, asegurando que siempre se utilicen los datos más recientes y se guarde un nuevo modelo entrenado.
 
-COPY requirements.txt constraints.txt $AIRFLOW_HOME/
-
-RUN pip install --no-cache-dir -r requirements.txt -c constraints.txt
+No se implementa el drift de datos.
