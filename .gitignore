@@ -175,4 +175,5 @@ cython_debug/
 .pypirc
 
 # Local virtual environment
-airflow/airflow.cfg
+airflow/airflow.cfgapp/backend/apilab/apilab/pipeline_training.pkl
+app/backend/apilab/apilab/pipeline_training.pkl
