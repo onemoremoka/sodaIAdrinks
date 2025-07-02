@@ -11,30 +11,30 @@ BACKEND_URL = (
 
 def predict_from_csv(file):
     df = pd.read_csv(file.name)
-    results = []
-    for _, row in df.iterrows():
-        data = row.to_dict()
-        if isinstance(data.get("purchase_date"), pd.Timestamp):
-            data["purchase_date"] = data["purchase_date"].isoformat()
-        try:
-            response = requests.post(BACKEND_URL, json=data)
-            if response.status_code == 200:
-                res_json = response.json()
-                if res_json.get("prediction") == 0:
-                    continue
-                results.append(res_json)
-            # Si predicción == 0 se omite el registro
-        except Exception as e:
-            results.append({"error": str(e)})
-    # Convertimos los resultados a DataFrame para guardar en CSV
+    data = df.to_dict(orient="records")  # Lista de dicts con todas las filas
+
+    try:
+        response = requests.post(
+            BACKEND_URL.replace("/inference", "/inference_batch"), json=data
+        )
+        if response.status_code == 200:
+            results = response.json()
+            # Filtrar predicciones positivas si quieres
+            results = [r for r in results if r.get("prediction", 0) != 0]
+        else:
+            results = [{"error": f"Status code {response.status_code}"}]
+    except Exception as e:
+        results = [{"error": str(e)}]
+
     if len(results) == 0:
-        # Retornar un CSV vacío si no hay resultados
         output_csv = tempfile.NamedTemporaryFile(delete=False, suffix=".csv")
         pd.DataFrame().to_csv(output_csv.name, index=False)
         return [], output_csv.name
+
     df_results = pd.DataFrame(results)
     output_csv = tempfile.NamedTemporaryFile(delete=False, suffix=".csv")
     df_results.to_csv(output_csv.name, index=False)
+
     return results, output_csv.name
 
 
