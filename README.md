@@ -46,6 +46,7 @@ docker compose restart
 # Detener todos los servicios
 docker compose down
 
+
 # Rebuild de imágenes
 docker compose up --build
 ```
@@ -54,3 +55,23 @@ docker compose up --build
 mas detalles en [airflow/README.md](airflow/README.md)
 
 Se implementan las funciones para realizar el drift detection "drift_detection.py" y el reentrenamiento automatico en model_training.py ambos en la carpeta airflow. No se agregar al pipeline de datos por tiempo. Se espera agregar para la ultima etapa.
+
+
+## Disclaimer:
+
+⚙️ Permisos de Carpetas para Airflow
+
+    ❗ Si ves errores como PermissionError: [Errno 13] Permission denied dentro del contenedor de Airflow, probablemente se deban a conflictos de permisos en volúmenes compartidos.
+
+
+Ejecuta los siguientes comandos en tu máquina host para evitar estos problemas:
+
+
+```bash
+sudo chown -R 50000:0 airflow
+sudo chmod -R 775 airflow
+```
+
+50000 es el UID del usuario airflow dentro del contenedor (puede variar según la imagen).
+
+Esto otorga permisos adecuados para que Airflow pueda leer/escribir en los directorios montados desde el host (por ejemplo, airflow/runs, airflow/dags, etc.).
